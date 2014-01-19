@@ -76,7 +76,7 @@ n = 0
 for day in weather_raw:
     for obs in day['history']['observations']:
         n += 1
-cols = len(non_numerical_keys + numerical_keys + ignored_keys)
+cols = len(non_numerical_keys + numerical_keys + ignored_keys) + 2
 
 ## preallocate the python array
 weather = numpy.zeros((n,cols), dtype=object)
@@ -86,23 +86,35 @@ n = 0
 for day in weather_raw:
     ## iterate over observation
     for obs in day['history']['observations']:
-        utcdate = obs['date']
-        date = datetime.datetime(int(utcdate['year']), int(utcdate['mon']), int(utcdate['mday']), int(utcdate['hour']), int(utcdate['min']))
-        tdiff_since_0AD = (date - zeroAD)
-        hours_since_0AD = tdiff_since_0AD.total_seconds() / 3600.0
-        weather[n,0] = hours_since_0AD
+        labels = []
+        ## handle the date
+        timestamp_raw = obs['date']
+        timestamp = datetime.datetime(int(timestamp_raw['year']), int(timestamp_raw['mon']), int(timestamp_raw['mday']), int(timestamp_raw['hour']), int(timestamp_raw['min']))
+        ## add the date, hour and minute as standalone values
+        weather[n,len(labels)] = str(timestamp.date())
+        labels.append('date')
+        ## hour
+        weather[n,len(labels)] = str(timestamp.hour)
+        labels.append('hour')
+        ## min
+        weather[n,len(labels)] = str(timestamp.minute)
+        labels.append('min')
+        ## calculate the number of minutes since 0AD in eastern daylight time
+        tdiff_since_0AD = (timestamp - zeroAD)
+        mins_since_0AD = tdiff_since_0AD.total_seconds() / 60.0
+        weather[n,len(labels)] = mins_since_0AD
+        labels.append('mins_since_0AD_edt')
         ## handle all non-numerical fields
-        i = 1
         for key in non_numerical_keys:
-            weather[n,i] = obs[key].lower()
-            i += 1
+            weather[n,len(labels)] = obs[key].lower()
+            labels.append(key)
         for key in numerical_keys:
-            weather[n,i] = float(obs[key])
-            i += 1
+            weather[n,len(labels)] = float(obs[key])
+            labels.append(key)
         n += 1
 
 ## get labels
-labelString = ",".join([u'hours_since_0AD_est'] + non_numerical_keys + numerical_keys)
+labelString = ",".join(labels)
 
 ## write to file
 numpy.savetxt('data_processed/weather_raw.csv',weather,delimiter=",",fmt="%s",header=labelString)
