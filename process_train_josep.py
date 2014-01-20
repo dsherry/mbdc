@@ -3,6 +3,7 @@ import numpy
 import csv
 import datetime
 import matplotlib
+import matplotlib.pyplot as plt
 
 # read josep's training data into numpy
 
