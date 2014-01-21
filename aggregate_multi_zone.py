@@ -97,7 +97,7 @@ for i,row in enumerate(master_list):
 holidays=['2012-05-28','2012-07-04','2012-09-03','2012-10-08','2012-11-12','2012-11-22']
 
 # write out the output
-final_output = numpy.zeros((aggregates.shape[0] * aggregates.shape[1],6),dtype=object)
+final_output = numpy.zeros((aggregates.shape[0] * aggregates.shape[1],8),dtype=object)
 for hours,row in enumerate(aggregates):
     timestamp = initial_date + datetime.timedelta(0, hours*3600)
     date_str = str(timestamp.date())
@@ -105,7 +105,7 @@ for hours,row in enumerate(aggregates):
     minutes_since_may1 = (timestamp - initial_date).total_seconds() / 60.0
     is_holiday = int(date_str in holidays)
     for zone,count in enumerate(row):
-        final_output[(aggregates.shape[1]*hours)+zone,:] = numpy.array([[date_str, hour, int(minutes_since_may1), is_holiday, zone, int(count)]],dtype=object)
+        final_output[(aggregates.shape[1]*hours)+zone,:] = numpy.array([[date_str, hour, int(minutes_since_may1), is_holiday, zone, zones[zone,0], zones[zone,1], latitude, int(count)]],dtype=object)
 
 ## write to file
 numpy.savetxt('train_dylan.csv',final_output,delimiter=',',fmt='%s')
