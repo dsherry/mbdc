@@ -64,6 +64,7 @@ for i,zone in enumerate(zones):
     lon = numpy.array(train_trimmed[:,1],dtype=float)
     lat = numpy.array(train_trimmed[:,2],dtype=float)
     zone_threshold_indices = (0.00224946357 > numpy.sqrt(numpy.power(lon - zone[0],2) + numpy.power(lat - zone[1],2)))
+    print "Obtained %s rows which match the threshold" %(numpy.sum(zone_threshold_indices))
 
     # grab the rows we care about
     zone_cols = train_trimmed[zone_threshold_indices,:]
