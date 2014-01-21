@@ -74,3 +74,38 @@ for i,zone in enumerate(zones):
     # add these rows to the master_list
     master_list = numpy.vstack([master_list,zone_cols])
 
+## group by date
+
+
+# morning of may 1st 2012
+initial_date = datetime.datetime(2012,5,1)
+
+# hours range from 0 to 5136, cols are zones
+aggregates = numpy.zeros((5137,35))
+for i,row in enumerate(master_list):
+    ## translate the date
+    timestamp = datetime.datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+    elapsed_hours = int(numpy.round((timestamp - initial_date).total_seconds() / 3600.0))
+
+    zone = row[3]
+
+    ## use the elapsed_hours to index into the aggregation array
+    ## first do the current hour
+    aggregates[elapsed_hours,zone] += 1
+    if elapsed_hours > 1: aggregates[elapsed_hours] += 1
+
+holidays=['2012-05-28','2012-07-04','2012-09-03','2012-10-08','2012-11-12','2012-11-22']
+
+# write out the output
+final_output = numpy.zeros((aggregates.shape[0] * aggregates.shape[1],6),dtype=object)
+for hours,row in enumerate(aggregates):
+    timestamp = initial_date + datetime.timedelta(0, hours*3600)
+    date_str = str(timestamp.date())
+    hour = timestamp.hour
+    minutes_since_may1 = (timestamp - initial_date).total_seconds() / 60.0
+    is_holiday = int(date_str in holidays)
+    for zone,count in enumerate(row):
+        final_output[(aggregates.shape[1]*hours)+zone,:] = numpy.array([[date_str, hour, int(minutes_since_may1), is_holiday, zone, int(count)]],dtype=object)
+
+## write to file
+numpy.savetxt('train_dylan.csv',final_output,delimiter=',',fmt='%s')
